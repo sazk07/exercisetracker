@@ -74,7 +74,7 @@ function createExerciseChain() {
 // send exercises
 const exercises_post = async(req, res, next) => {
   const { userId } = req.params
-  const { _id, description, duration, date } = req.body
+  const { description, duration, date } = req.body
   const validationErrors = validationResult(req)
   if (!validationErrors.isEmpty()) {
     res.json({
@@ -92,16 +92,16 @@ const exercises_post = async(req, res, next) => {
       }, 'username').exec()
       // save record
       const exercise = new Exercise({
-        userId: _id,
         description: description,
         duration: duration,
         date: date,
-        username: username.username
+        username: username.username,
+        userId: userId
       })
       await exercise.save()
       const dateString = exercise.date.toDateString()
       res.json({
-        _id: exercise._id,
+        _id: exercise.userId,
         description: exercise.description,
         duration: exercise.duration,
         date: dateString,
@@ -122,16 +122,16 @@ const logs_get = async(req, res, next) => {
 
   const [recordResult, count] = await Promise.all([
     // find record
-    Exercise.find({ _id: userId }, '_id description duration username date', {
+    Exercise.find({ userId: userId }, 'userId description duration username date', {
       date: { $gte: fromDate, $lte: toDate },
       limit: limitInt
     }).exec(),
     // count documents
     Exercise.countDocuments({
-      _id: userId
+      userId: userId
     }).exec()
   ])
-  if (recordResult === null || count === 0) {
+  if (count === 0) {
     // No results
     res.status(404).json({ error: "record not found"})
   } else {
@@ -143,7 +143,7 @@ const logs_get = async(req, res, next) => {
     })
     res.json({
       username: recordResult[0].username,
-      _id: recordResult[0]._id,
+      _id: recordResult[0].userId,
       count: count,
       logs: mappedLogsArray
     })

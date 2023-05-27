@@ -21,7 +21,7 @@ const ExerciseSchema = new Schema({
   username: String,
   userId: {
     type: String,
-    ref: 'Users',
+    ref: 'User',
     index: true,
   },
 })
