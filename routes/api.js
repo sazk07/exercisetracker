@@ -131,23 +131,23 @@ const logs_get = async(req, res, next) => {
       _id: userId
     }).exec()
   ])
-  if (recordResult === null || count === null) {
+  if (recordResult.status === 'rejected' || count.status === 'rejected' ) {
     // No results
     const err = new Error("No record found")
     err.status = 404
     return next(err)
   }
 
-  const mappedLogsArray = recordResult.map((item) => {
+  const mappedLogsArray = recordResult.value.map((item) => {
     return { duration: item.duration,
       description: item.description,
       date: item.date.toDateString(), }
   })
 
   res.json({
-    username: recordResult[0].username,
-    _id: recordResult[0]._id,
-    count: count,
+    username: recordResult.value[0].username,
+    _id: recordResult.value[0]._id,
+    count: count.value,
     logs: mappedLogsArray
   })
 }
