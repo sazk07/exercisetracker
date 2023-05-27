@@ -120,7 +120,7 @@ const logs_get = async(req, res, next) => {
   const toDate = new Date(to)
   const limitInt = parseInt(limit)
 
-  const [recordResult, count] = await Promise.all([
+  const [recordResult, count] = await Promise.allSettled([
     // find record
     Exercise.find({ _id: userId }, '_id description duration username date', {
       date: { $gte: fromDate, $lte: toDate },
@@ -131,6 +131,12 @@ const logs_get = async(req, res, next) => {
       _id: userId
     }).exec()
   ])
+  if (recordResult === null || count === null) {
+    // No results
+    const err = new Error("No record found")
+    err.status = 404
+    return next(err)
+  }
 
   const mappedLogsArray = recordResult.map((item) => {
     return { duration: item.duration,
