@@ -120,7 +120,7 @@ const logs_get = async(req, res, next) => {
   const toDate = new Date(to)
   const limitInt = parseInt(limit)
 
-  const [recordResult, count] = await Promise.allSettled([
+  const [recordResult, count] = await Promise.all([
     // find record
     Exercise.find({ _id: userId }, '_id description duration username date', {
       date: { $gte: fromDate, $lte: toDate },
@@ -131,25 +131,23 @@ const logs_get = async(req, res, next) => {
       _id: userId
     }).exec()
   ])
-  if (recordResult.status === 'rejected' || count.status === 'rejected' ) {
+  if (recordResult === null || count === 0) {
     // No results
-    const err = new Error("No record found")
-    err.status = 404
-    return next(err)
+    res.status(404).json({ error: "record not found"})
+  } else {
+    const mappedLogsArray = recordResult.map((item) => {
+      return { duration: item.duration,
+        description: item.description,
+        date: item.date.toDateString()
+      }
+    })
+    res.json({
+      username: recordResult[0].username,
+      _id: recordResult[0]._id,
+      count: count,
+      logs: mappedLogsArray
+    })
   }
-
-  const mappedLogsArray = recordResult.value.map((item) => {
-    return { duration: item.duration,
-      description: item.description,
-      date: item.date.toDateString(), }
-  })
-
-  res.json({
-    username: recordResult.value[0].username,
-    _id: recordResult.value[0]._id,
-    count: count.value,
-    logs: mappedLogsArray
-  })
 }
 
 router.get('/users', asyncHandler(users_get))
