@@ -19,9 +19,7 @@ const users_get = async(req, res, next) => {
 function createUsernameChain() {
   return body("username")
     .trim()
-    .isLength({min: 3})
     .escape()
-    .withMessage("username must be atleast 3 characters long")
     .isAlphanumeric()
     .withMessage("username must be alphabet or numbers")
 }
@@ -44,15 +42,16 @@ const users_post = async(req, res, next) => {
     // check if username already exists
     const usernameExists = await User.findOne({
       username: req.body.username
-    })
-      .exec()
-    usernameExists ? res.send({ error: 'username already exists' })
-      :
-    await username.save()
-    res.json({
-      username: username.username,
-      _id: username._id
-    })
+    }).exec()
+    if (usernameExists) {
+      res.send({ error: 'username already exists' })
+    } else {
+      await username.save()
+      res.json({
+        username: username.username,
+        _id: username._id
+      })
+    }
   }
 }
 
@@ -120,6 +119,7 @@ const logs_get = async(req, res, next) => {
   const toDate = new Date(to)
   const limitInt = parseInt(limit)
 
+  try {
   const [recordResult, count] = await Promise.all([
     // find record
     Exercise.find({ userId: userId }, 'userId description duration username date', {
@@ -131,10 +131,6 @@ const logs_get = async(req, res, next) => {
       userId: userId
     }).exec()
   ])
-  if (count === 0) {
-    // No results
-    res.status(404).json({ error: "record not found"})
-  } else {
     const mappedLogsArray = recordResult.map((item) => {
       return { duration: item.duration,
         description: item.description,
@@ -147,6 +143,8 @@ const logs_get = async(req, res, next) => {
       count: count,
       logs: mappedLogsArray
     })
+  } catch (error) {
+    res.status(404).json({ error: "record not found"})
   }
 }
 
