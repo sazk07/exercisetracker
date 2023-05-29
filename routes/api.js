@@ -144,7 +144,7 @@ const logs_get = async(req, res, next) => {
       logs: mappedLogsArray
     })
   } catch (error) {
-    res.status(404).json({ error: "record not found"})
+    next()
   }
 }
 
