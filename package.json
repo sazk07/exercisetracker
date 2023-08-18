@@ -21,7 +21,7 @@
 		"morgan": "^1.10.0"
 	},
 	"repository": {
-		"url": "https://github.com/sazk07/fcc-exercisetracker"
+		"url": "https://github.com/sazk07/exercisetracker"
 	},
 	"license": "MIT",
 	"keywords": [
